@@ -10,10 +10,12 @@ public class GradientEditor extends JComponent {
     super.setUI(ui);
 
     super.addMouseMotionListener(new MouseMotionListener() {
-      public void mouseDragged(MouseEvent e) {}
+      public void mouseDragged(MouseEvent e) {
+
+      }
 
       public void mouseMoved(MouseEvent e) {
-        System.out.println(String.format("%f %b", ui.toPosition(e.getX()), ui.inKnobRegion(e.getY())));
+
       }
     });
   }
@@ -24,6 +26,7 @@ public class GradientEditor extends JComponent {
     if (gradient == null)
       throw new IllegalArgumentException("gradient is null");
     this.gradient = new Gradient(gradient);
+    ui.loadGradient();
   }
 
   public Gradient getGradient() {
