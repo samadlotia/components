@@ -2,11 +2,12 @@ package samad.components.gradient;
 
 import java.awt.Color;
 
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.List;
+import java.util.Collections;
+import java.util.ArrayList;
 
 public class Gradient {
-  public static class Stop implements Comparable<Stop> {
+  public class Stop implements Comparable<Stop> {
     protected float position;
     protected Color color;
 
@@ -35,6 +36,7 @@ public class Gradient {
       if (0.0f > position || position > 1.0f)
         throw new IllegalArgumentException("position must be in [0.0, 1.0]");
       this.position = position;
+      Collections.sort(stops);
     }
 
     public void setColor(final Color color) {
@@ -46,9 +48,13 @@ public class Gradient {
     public int compareTo(final Stop that) {
       return Double.compare(this.getPosition(), that.getPosition());
     }
+
+    public String toString() {
+      return String.format("%.2f @ 0x%x", position, color.getRGB());
+    }
   }	
 
-  SortedSet<Stop> stops = new TreeSet<Stop>();
+  List<Stop> stops = new ArrayList<Stop>();
 
   public Gradient() {
     this(Color.RED, Color.BLACK, Color.GREEN);
@@ -57,6 +63,7 @@ public class Gradient {
   public Gradient(Gradient that) {
     for (Stop stop : that.getStops())
       this.add(stop);
+    Collections.sort(stops);
   }
 
   public Gradient(Color ... colors) {
@@ -68,35 +75,23 @@ public class Gradient {
   }
 
   public boolean add(final Stop stop) {
-    return stops.add(new Stop(stop));
+    final boolean result = stops.add(new Stop(stop));
+    Collections.sort(stops);
+    return result;
   }
 
   public boolean add(final float position, final Color color) {
-    return stops.add(new Stop(position, color));
+    final boolean result = stops.add(new Stop(position, color));
+    Collections.sort(stops);
+    return result;
   }
 
   public boolean remove(final Stop stop) {
     if (stops.size() <= 2)
       throw new IllegalStateException("Gradient must have at least two stops");
-    return stops.remove(stop);
-  }
-
-  public float[] getAllPositions(float[] array) {
-    if (array == null || array.length != stops.size())
-      array = new float[stops.size()];
-    int i = 0;
-    for (Stop stop : stops)
-      array[i++] = stop.getPosition();
-    return array;
-  }
-
-  public Color[] getAllColors(Color[] array) {
-    if (array == null || array.length != stops.size())
-      array = new Color[stops.size()];
-    int i = 0;
-    for (Stop stop : stops)
-      array[i++] = stop.getColor();
-    return array;
+    final boolean result = stops.remove(stop);
+    Collections.sort(stops);
+    return result;
   }
 
   public Iterable<Stop> getStops() {
@@ -105,5 +100,17 @@ public class Gradient {
 
   public int size() {
     return stops.size();
+  }
+
+  public String toString() {
+    return stops.toString();
+  }
+
+  public int indexOfStop(final Stop stop) {
+    return stops.indexOf(stop);
+  }
+
+  public Stop stopAtIndex(final int i) {
+    return stops.get(i);
   }
 }

@@ -16,98 +16,128 @@ import java.awt.geom.Rectangle2D;
 import java.awt.geom.Path2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.awt.Insets;
 
 public class GradientEditorUI extends ComponentUI {
   final GradientEditor editor;
   final KnobUI knobUI = new KnobUI();
 
+  final Rectangle2D.Float gradientRegion = new Rectangle2D.Float();
   // keep these as class members so that they won't have to be reallocated
   // every time paint() is called
-  protected float[] positions = new float[0];
-  protected Color[] colors = new Color[0];
-  final Rectangle2D gradientRect = new Rectangle2D.Float();
+  final Rectangle2D.Float singleGradientRect = new Rectangle2D.Float();
 
   public GradientEditorUI(final GradientEditor editor) {
     this.editor = editor;
   }
 
-  public void loadGradient() {
-    final Gradient gradient = editor.getGradient();
-    positions = gradient.getAllPositions(positions);
-    colors = gradient.getAllColors(colors);
-  }
-
   public void paint(final Graphics g, final JComponent component) {
-    final int w = editor.getWidth();
-    final int h = editor.getHeight();
-    final float kw = KnobUI.knobWidth();
-    final float kh = KnobUI.knobHeight();
-    final float gx = kw / 2.0f;
-    final float gy = 0.0f;
-    final float gw = w - kw;
-    final float gh = h - kh;
+    final Gradient gradient = editor.getGradient();
+    final int nStops = gradient.size();
+    if (nStops == 0)
+      return;
 
     final Graphics2D g2d = (Graphics2D) g;
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-    for (int i = 0; i < positions.length - 1; i++) {
-      final float p1 = positions[i];
-      final float p2 = positions[i + 1];
+    updateGradientRegion();
 
-      final Color c1 = colors[i];
-      final Color c2 = colors[i + 1];
+    final Gradient.Stop firstStop = gradient.stopAtIndex(0);
+    final float x0 = positionToX(firstStop.getPosition());
+    g2d.setPaint(firstStop.getColor());
+    singleGradientRect.setRect(gradientRegion.x, gradientRegion.y,
+                               x0, gradientRegion.height);
+    g2d.fill(singleGradientRect);
 
-      final float x1 = p1 * gw + gx;
-      final float x2 = p2 * gw + gx;
+    for (int i = 0; i < nStops - 1; i++) {
+      final Gradient.Stop stop1 = gradient.stopAtIndex(i);
+      final Gradient.Stop stop2 = gradient.stopAtIndex(i + 1);
+
+      final float x1 = positionToX(stop1.getPosition());
+      final float x2 = positionToX(stop2.getPosition());
       
-      final GradientPaint p = new GradientPaint(x1, 0.0f, c1,
-                                                x2, 0.0f, c2);
+      final GradientPaint p = new GradientPaint(x1, 0.0f, stop1.getColor(),
+                                                x2, 0.0f, stop2.getColor());
       g2d.setPaint(p);
-
-      gradientRect.setRect(x1, gy, x2 - x1, gh);
-      g2d.fill(gradientRect);
+      singleGradientRect.setRect(x1, gradientRegion.y, x2 - x1, gradientRegion.height);
+      g2d.fill(singleGradientRect);
     }
 
-    for (int i = 0; i < positions.length; i++) {
-      final float kx = positions[i] * gw;
-      knobUI.paintKnob(g2d, kx, gh, colors[i], (i % 2) != 0);
+    final Gradient.Stop lastStop = gradient.stopAtIndex(nStops - 1);
+    g2d.setPaint(lastStop.getColor());
+    final float xN = positionToX(lastStop.getPosition());
+    singleGradientRect.setRect(xN, gradientRegion.y,
+                               gradientRegion.width - xN + gradientRegion.x, gradientRegion.height);
+    g2d.fill(singleGradientRect);
+
+    final Gradient.Stop selectedStop = editor.getSelectedStop();
+    for (final Gradient.Stop stop : gradient.getStops()) {
+      if (stop == selectedStop) continue;
+      paintStop(g2d, stop, false);
     }
+    if (selectedStop != null)
+      paintStop(g2d, selectedStop, true); // always paint the selected stop on top
+  }
+
+  protected void paintStop(final Graphics2D g2d, final Gradient.Stop stop, final boolean selected) {
+    final float x = positionToX(stop.getPosition());
+    final float y = gradientRegion.y + gradientRegion.height;
+    knobUI.paintKnob(g2d, x, y, stop.getColor(), selected);
+  }
+
+  protected void updateGradientRegion() {
+    final Insets insets = editor.getInsets();
+    final float kw = KnobUI.knobWidth();
+    final float kh = KnobUI.knobHeight();
+    gradientRegion.setRect((float) Math.floor(insets.left + kw / 2.0f),
+                           (float) Math.floor(insets.top),
+                           (float) Math.ceil(editor.getWidth() - insets.right - insets.left - kw),
+                           (float) Math.floor(editor.getHeight() - insets.bottom - insets.top - kh));
+  }
+
+  protected float positionToX(final float position) {
+    return (float) Math.ceil(position * gradientRegion.width + gradientRegion.x);
   }
 
   public Dimension getMinimumSize() {
     return new Dimension((int) (KnobUI.knobWidth() * 5.0f), (int) (KnobUI.knobHeight() * 12.0f * editor.getGradient().size()));
   }
 
-  public boolean inKnobRegion(final int mouseY) {
-    final int kh = (int) knobUI.knobHeight();
-    final int h = editor.getHeight();
-    final int regionMinY = h - kh;
-
-    return (regionMinY <= mouseY);
+  public boolean inKnobRegion(final int y) {
+    final int minY = (int) (gradientRegion.y + gradientRegion.height);
+    final int maxY = (int) (minY + KnobUI.knobHeight());
+    return (minY <= y && y <= maxY);
   }
 
-  public float toPosition(final int mouseX) {
-    final int w = editor.getWidth();
-    final float kw = knobUI.knobWidth();
-    final float gx = kw / 2.0f;
-    final float gw = w - kw;
-
-    float position = (mouseX - gx) / gw;
-    // cap the position between 0 and 1
+  public float xToPosition(final int x) {
+    final float position = (x - gradientRegion.x) / gradientRegion.width;
     if (position < 0.0f)
-      position = 0.0f;
+      return 0.0f;
     else if (position > 1.0f)
-      position = 1.0f;
-    return position;
+      return 1.0f;
+    else
+      return position;
+  }
+
+  public Gradient.Stop xToStop(final int x) {
+    final float kw = KnobUI.knobWidth();
+    for (final Gradient.Stop stop : editor.getGradient().getStops()) {
+      final float stopX = positionToX(stop.getPosition());
+      final float xMin = stopX - kw / 2.0f;
+      final float xMax = xMin + kw;
+      if (xMin <= x && x <= xMax)
+        return stop;
+    }
+    return null;
   }
 
   protected static class KnobUI {
     protected static final float KNOB_WIDTH = 16.0f;
 
-    protected static final float KNOB_BORDER = 1.2f;
+    protected static final float KNOB_BORDER = 1.0f;
     protected static final Stroke KNOB_BORDER_STROKE = new BasicStroke(KNOB_BORDER);
     protected static final float KNOB_INNER_PADDING = 1.0f;
-    protected static final float KNOB_SELECTED_BORDER_FACTOR = 1.3f;
+    protected static final float KNOB_SELECTED_BORDER_FACTOR = 1.20f;
 
     protected static final Color KNOB_INNER_COLOR = new Color(0xEDEDED);
     protected static final Color KNOB_BORDER_COLOR = new Color(0xA0A0A0);
@@ -127,6 +157,13 @@ public class GradientEditorUI extends ComponentUI {
       path.lineTo(0.0f    , k * 4.0f / 3.0f); // bottom-left
       path.lineTo(0.0f    , k * 1.0f / 3.0f); // top-left corner
       path.closePath();
+
+      final Rectangle2D pathBounds = path.getBounds2D();
+      final double centerx = pathBounds.getWidth() / 2.0;
+      final AffineTransform t = new AffineTransform();
+      t.setToTranslation(-centerx, 0.0);
+      path.transform(t);
+
       return path;
     }
 
@@ -140,9 +177,9 @@ public class GradientEditorUI extends ComponentUI {
 
       final Rectangle2D pathBounds = path.getBounds2D();
       final Rectangle2D newPathBounds = newPath.getBounds2D();
-      final double centerx = (newPathBounds.getWidth() - pathBounds.getWidth()) / 2.0;
+      final double centerx = (newPathBounds.getWidth() - pathBounds.getWidth()) / 2.0 - 1;
       final double centery = (newPathBounds.getHeight() - pathBounds.getHeight()) / 2.0;
-      t.setToTranslation(-centerx, -centery);
+      t.setToTranslation(+centerx, -centery);
       newPath.transform(t);
 
       return newPath;
@@ -152,11 +189,19 @@ public class GradientEditorUI extends ComponentUI {
       final float k = KNOB_WIDTH;
       final float kp = KNOB_INNER_PADDING;
       final Path2D.Float path = new Path2D.Float();
-      path.moveTo(k - kp , k * 1.0f / 3.0f + kp); // top-right corner
-      path.lineTo(k - kp , k * 4.0f / 3.0f - kp); // bottom-right
-      path.lineTo(kp     , k * 4.0f / 3.0f - kp); // bottom-left
-      path.lineTo(kp     , k * 1.0f / 3.0f + kp); // top-left corner
+      path.moveTo(k - kp , k * 1.0f / 3.0f + kp + 1); // top-right corner
+      path.lineTo(k - kp , k * 4.0f / 3.0f - kp - 1); // bottom-right
+      path.lineTo(kp + 1 , k * 4.0f / 3.0f - kp - 1); // bottom-left
+      path.lineTo(kp + 1 , k * 1.0f / 3.0f + kp + 1); // top-left corner
       path.closePath();
+
+
+      final Rectangle2D pathBounds = KNOB_PATH.getBounds2D();
+      final double centerx = pathBounds.getWidth() / 2.0;
+      final AffineTransform t = new AffineTransform();
+      t.setToTranslation(-centerx, 0.0);
+      path.transform(t);
+
       return path;     
     }
 
@@ -176,7 +221,8 @@ public class GradientEditorUI extends ComponentUI {
                           final Color knobColor, final boolean selected) {
       if (selected) {
         g.setColor(KNOB_SELECTED_COLOR);
-        g.fill(knobSelectedPath.offset(x, y)); }
+        g.fill(knobSelectedPath.offset(x, y));
+      }
 
       g.setColor(KNOB_INNER_COLOR);
       g.fill(knobPath.offset(x, y));
