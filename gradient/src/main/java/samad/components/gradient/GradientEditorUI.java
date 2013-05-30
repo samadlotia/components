@@ -14,8 +14,6 @@ import java.awt.BasicStroke;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Path2D;
-import java.awt.Image;
-import java.awt.image.BufferedImage;
 import java.awt.Insets;
 
 public class GradientEditorUI extends ComponentUI {
@@ -42,6 +40,7 @@ public class GradientEditorUI extends ComponentUI {
 
     updateGradientRegion();
 
+    // paint up to the first stop
     final Gradient.Stop firstStop = gradient.stopAtIndex(0);
     final float x0 = positionToX(firstStop.getPosition());
     g2d.setPaint(firstStop.getColor());
@@ -49,6 +48,7 @@ public class GradientEditorUI extends ComponentUI {
                                x0, gradientRegion.height);
     g2d.fill(singleGradientRect);
 
+    // paint each gradient
     for (int i = 0; i < nStops - 1; i++) {
       final Gradient.Stop stop1 = gradient.stopAtIndex(i);
       final Gradient.Stop stop2 = gradient.stopAtIndex(i + 1);
@@ -63,6 +63,7 @@ public class GradientEditorUI extends ComponentUI {
       g2d.fill(singleGradientRect);
     }
 
+    // paint from the last stop to the end of the component
     final Gradient.Stop lastStop = gradient.stopAtIndex(nStops - 1);
     g2d.setPaint(lastStop.getColor());
     final float xN = positionToX(lastStop.getPosition());
@@ -70,6 +71,7 @@ public class GradientEditorUI extends ComponentUI {
                                gradientRegion.width - xN + gradientRegion.x, gradientRegion.height);
     g2d.fill(singleGradientRect);
 
+    // paint each knob
     final Gradient.Stop selectedStop = editor.getSelectedStop();
     for (final Gradient.Stop stop : gradient.getStops()) {
       if (stop == selectedStop) continue;

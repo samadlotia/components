@@ -5,14 +5,22 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.Color;
 
 public class GradientEditor extends JComponent {
+  public static final String SELECTED_STOP_CHANGED = "selected stop changed";
+  public static final String SELECTED_STOP_POSITION_CHANGED = "selected stop position changed";
   final GradientEditorUI ui = new GradientEditorUI(this);
   public GradientEditor() {
     super.setUI(ui);
+    super.setFocusable(true);
 
     super.addMouseListener(new MouseAdapter() {
       public void mousePressed(final MouseEvent e) {
+        requestFocusInWindow();
+
         final int x = e.getX();
         final int y = e.getY();
 
@@ -22,6 +30,20 @@ public class GradientEditor extends JComponent {
           selectedStop = null;
         }
         repaint();
+        firePropertyChange(SELECTED_STOP_CHANGED, null, null);
+      }
+
+      public void mouseClicked(final MouseEvent e) {
+        if (selectedStop != null)
+          return;
+        if (e.getClickCount() != 2)
+          return;
+        if (!ui.inKnobRegion(e.getY()))
+          return;
+        final float position = ui.xToPosition(e.getX());
+        selectedStop = gradient.add(position, Color.WHITE);
+        repaint();
+        firePropertyChange(SELECTED_STOP_CHANGED, null, null);
       }
     });
 
@@ -33,24 +55,24 @@ public class GradientEditor extends JComponent {
         final float position = ui.xToPosition(x);
         selectedStop.setPosition(position);
         repaint();
+        firePropertyChange(SELECTED_STOP_POSITION_CHANGED, null, null);
       }
     });
 
-    /*
-    super.addComponentListener(new ComponentAdapter() {
-      public void componentResized(final ComponentEvent e) {
-        ui.prepareAfterResize();
-      }
-
-      public void componentShown(final ComponentEvent e) {
-        ui.prepareAfterResize();
-      }
-
-      public void componentMoved(final ComponentEvent e) {
-        ui.prepareAfterResize();
+    super.addKeyListener(new KeyAdapter() {
+      public void keyPressed(final KeyEvent e) {
+        if (selectedStop == null)
+          return;
+        if (gradient.size() < 2)
+          return;
+        if (e.getKeyCode() != KeyEvent.VK_BACK_SPACE && e.getKeyCode() != KeyEvent.VK_DELETE)
+          return;
+        gradient.remove(selectedStop);
+        selectedStop = null;
+        repaint();
+        firePropertyChange(SELECTED_STOP_CHANGED, null, null);
       }
     });
-    */
   }
 
   Gradient gradient = new Gradient();

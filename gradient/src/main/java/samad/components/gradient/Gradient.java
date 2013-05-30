@@ -80,10 +80,11 @@ public class Gradient {
     return result;
   }
 
-  public boolean add(final float position, final Color color) {
-    final boolean result = stops.add(new Stop(position, color));
+  public Stop add(final float position, final Color color) {
+    final Stop stop = new Stop(position, color);
+    stops.add(stop);
     Collections.sort(stops);
-    return result;
+    return stop;
   }
 
   public boolean remove(final Stop stop) {

@@ -17,12 +17,7 @@ public class Main {
 
   public Main() {
   	final JFrame frame = new JFrame();
-  	final GradientEditor editor = new GradientEditor();
-    editor.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-  	editor.setGradient(new Gradient(Color.red, Color.orange, Color.yellow, Color.green, Color.blue, Color.magenta));
-    //editor.setGradient(new Gradient(Color.blue, Color.black, Color.yellow));
-    //editor.setGradient(new Gradient(Color.blue, Color.black));
-  	frame.add(editor);
+  	frame.add(new GradientPanel());
   	frame.pack();
   	frame.setVisible(true);
   }
