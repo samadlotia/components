@@ -1,6 +1,7 @@
 package samad.components.gradient;
 
 import java.util.Arrays;
+import java.util.List;
 
 import java.awt.Color;
 import java.awt.Rectangle;
@@ -83,18 +84,18 @@ public class GradientPanel extends JPanel {
     c.gridwidth = 3;  c.gridheight = 1;
     c.weightx = 1.0;  c.weighty = 1.0;
     c.fill = GridBagConstraints.BOTH;
-    c.insets = new Insets(0, 0, 10, 0);
+    c.insets = new Insets(20, 10, 10, 10);
     super.add(editor, c);
 
     c.gridx = 0;      c.gridy = 1;
     c.gridwidth = 1;  c.gridheight = 1;
     c.weightx = 0.0;  c.weighty = 0.0;
+    c.insets = new Insets(0, 10, 10, 10);
     super.add(colorPanel, c);
 
     c.gridx = 1;      c.gridy = 1;
+    c.insets = new Insets(0, 0, 10, 10);
     super.add(positionPanel, c);
-
-
   }	
 }
 
@@ -123,35 +124,38 @@ class ColorPanel extends JPanel {
     c.weightx = 0.0;  c.weighty = 0.0;
     c.fill = GridBagConstraints.NONE;
     c.anchor = GridBagConstraints.NORTHWEST;
-    c.insets = new Insets(0, 10, 10, 10);
+    c.insets = new Insets(10, 10, 10, 10);
     well.setBorder(BorderFactory.createEtchedBorder());
     well.setPreferredSize(new Dimension(48, 48));
     super.add(well, c);
 
-    c.gridx = 1;      c.gridy = 0;
     c.gridwidth = 1;  c.gridheight = 1;
-    super.add(new JLabel("R:"), c);
 
-    c.gridx = 1;      c.gridy = 1;
-    super.add(new JLabel("G:"), c);
-    
-    c.gridx = 1;      c.gridy = 2;
-    super.add(new JLabel("B:"), c);
+    c.gridx = 1;      c.gridy = 0;
+    c.insets = new Insets(10, 0, 0, 10);
+    super.add(new JLabel("R:"), c);
 
     c.gridx = 2;      c.gridy = 0;
     super.add(sliderR, c);
 
-    c.gridx = 2;      c.gridy = 1;
-    super.add(sliderG, c);
-
-    c.gridx = 2;      c.gridy = 2;
-    super.add(sliderB, c);
-
     c.gridx = 3;      c.gridy = 0;
     super.add(fieldR, c);
 
+    c.gridx = 1;      c.gridy = 1;
+    super.add(new JLabel("G:"), c);
+
+    c.gridx = 2;      c.gridy = 1;
+    super.add(sliderG, c);
+
     c.gridx = 3;      c.gridy = 1;
     super.add(fieldG, c);
+    
+    c.gridx = 1;      c.gridy = 2;
+    c.insets = new Insets(10, 0, 10, 10);
+    super.add(new JLabel("B:"), c);
+
+    c.gridx = 2;      c.gridy = 2;
+    super.add(sliderB, c);
 
     c.gridx = 3;      c.gridy = 2;
     super.add(fieldB, c);
@@ -259,6 +263,21 @@ class ColorPanel extends JPanel {
   }
 }
 
+class ColorPresets extends JPanel {
+  protected static final List<Color> COLORS = Arrays.asList(
+    Color.red,
+    Color.orange,
+    Color.yellow,
+    Color.green,
+    Color.blue,
+    Color.magenta,
+    Color.black,
+    Color.darkGray,
+    Color.lightGray,
+    Color.white
+    );
+}
+
 class ColorWell extends JComponent {
   protected static final Color DISABLED_COLOR = new Color(0xD6D6D6);
 
@@ -312,13 +331,14 @@ class PositionPanel extends JPanel {
     c.gridwidth = 1;  c.gridheight = 1;
     c.weightx = 0.0;  c.weighty = 0.0;
     c.anchor = GridBagConstraints.NORTHWEST;
-    c.insets = new Insets(0, 10, 10, 10);
+    c.insets = new Insets(10, 10, 10, 10);
     super.add(new JLabel("Absolute:"), c);
 
     c.gridx = 1;      c.gridy = 0;
     super.add(absSpinner, c);
 
     c.gridx = 0;      c.gridy = 1;
+    c.insets = new Insets(0, 10, 10, 10);
     super.add(new JLabel("Relative:"), c);
 
     c.gridx = 1;      c.gridy = 1;

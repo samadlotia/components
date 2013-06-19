@@ -8,6 +8,7 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.Color;
+import java.awt.Dimension;
 
 public class GradientEditor extends JComponent {
   public static final String SELECTED_STOP_CHANGED = "selected stop changed";
@@ -90,5 +91,9 @@ public class GradientEditor extends JComponent {
 
   public Gradient.Stop getSelectedStop() {
     return selectedStop;
+  }
+
+  public Dimension getMinimumSize() {
+    return ui.getMinimumSize();
   }
 }

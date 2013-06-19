@@ -6,70 +6,93 @@ import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.geom.RoundRectangle2D;
 import java.awt.RenderingHints;
+import java.awt.geom.GeneralPath;
+import java.awt.Shape;
 
-public class RoundedProgressBar extends JComponent {
-	protected static final float CORNER_RADIUS = 5.2f;
-	protected static final float HEIGHT = 6.0f;
-	protected static final Color FG_COLOR = new Color(0x499e55);
-	protected static final Color BK_COLOR = new Color(0xd3d3d3);
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
-	public RoundedProgressBar() {
-		super.setMinimumSize(new Dimension(50, (int) HEIGHT));
-		super.setMaximumSize(new Dimension(10000, (int) HEIGHT));
-		super.setPreferredSize(new Dimension(250, (int) HEIGHT));
-	}
+import java.util.List;
+import java.util.ArrayList;
 
-	float value = 0.0f;
 
-	public void setValue(final float value) {
-		if (value > 1.0f)
-			this.value = 1.0f;
-		else if (value < 0.0f)
-			this.value = 0.0f;
-		else
-			this.value = value;
-		super.repaint();
-	}
+public class DiscloseTriangle extends JComponent {
+	protected static final float WIDTH = 11.0f;
+	protected static final Color COLOR = new Color(0x999999);
+	protected static final Color PRESSED_COLOR = new Color(0x666666);
+	protected static final Shape CLOSED_TRIANGLE = closedTriangle();
+	protected static final Shape OPENED_TRIANGLE = openedTriangle();
 
-	public float getValue() {
-		return value;
+	protected static Shape closedTriangle() {
+		final GeneralPath p = new GeneralPath();
+		p.moveTo(0.0f, 0.0f);
+		p.lineTo(WIDTH, WIDTH * 0.5f);
+		p.lineTo(0.0f, WIDTH);
+		p.closePath();
+		return p;
+	} 
+
+	protected static Shape openedTriangle() {
+		final GeneralPath p = new GeneralPath();
+		p.moveTo(0.0f, 0.0f);
+		p.lineTo(WIDTH, 0.0f);
+		p.lineTo(WIDTH * 0.5f, WIDTH);
+		p.closePath();
+		return p;
+	} 
+
+	protected boolean opened = false;
+	protected boolean pressed = false;
+
+	List<ActionListener> listeners = new ArrayList<ActionListener>();
+
+	public DiscloseTriangle() {
+		final Dimension d = new Dimension((int) WIDTH, (int) WIDTH);
+		super.setMinimumSize(d);
+		super.setMaximumSize(d);
+		super.setPreferredSize(d);
+
+		super.addMouseListener(new MouseAdapter() {
+			public void mousePressed(MouseEvent e) {
+				pressed = true;
+				repaint();
+			}
+
+			public void mouseReleased(MouseEvent e) {
+				pressed = false;
+				repaint();
+			}
+
+			public void mouseClicked(MouseEvent e) {
+				opened = !opened;
+				repaint();
+
+				ActionEvent event = new ActionEvent(DiscloseTriangle.this, 0, "clicked");
+				for (final ActionListener l : listeners)
+					l.actionPerformed(event);
+			}
+		});
 	}
 
 	Insets insets = new Insets(0, 0, 0, 0);
-	RoundRectangle2D.Float bkRect = new RoundRectangle2D.Float();
-	RoundRectangle2D.Float fgRect = new RoundRectangle2D.Float();
 
 	public void paintComponent(Graphics g) {
-		insets = super.getInsets(insets);
 		final Graphics2D g2d = (Graphics2D) g;
+		insets = super.getInsets(insets);
+		g2d.translate(insets.left, insets.top);
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-		final float x = insets.left;
-		final float y = insets.top;
-		final float w = getEffectiveWidth() - insets.right - insets.left;
-		final float h = HEIGHT;
-
-		bkRect.setRoundRect(x, y, w, h, CORNER_RADIUS, CORNER_RADIUS);
-		g2d.setColor(BK_COLOR);
-		g2d.fill(bkRect);
-
-		fgRect.setRoundRect(x, y, w * value, h, CORNER_RADIUS, CORNER_RADIUS);
-		g2d.setColor(FG_COLOR);
-		g2d.fill(fgRect);
+		g2d.setColor(pressed ? PRESSED_COLOR : COLOR);
+		g2d.fill(opened ? OPENED_TRIANGLE : CLOSED_TRIANGLE);
 	}
 
-	private int getEffectiveWidth() {
-		final int w = super.getWidth();
-		final int maxW = (int) super.getMaximumSize().getWidth();
-		final int minW = (int) super.getMinimumSize().getWidth();
+	public boolean isOpen() {
+		return opened;
+	}
 
-		if (w > maxW)
-			return maxW;
-		else if (w < minW)
-			return minW;
-		else
-			return w;
+	public void addActionListener(ActionListener l) {
+		listeners.add(l);
 	}
 }
