@@ -32,6 +32,10 @@ public class TaskWindow {
 	protected static final Icon CANCEL_HOVER_ICON = iconFromURL("/cancel-hover-icon.png");
 	protected static final Icon CANCEL_PRESSED_ICON = iconFromURL("/cancel-pressed-icon.png");
 
+	protected static final Icon WARN_ICON = iconFromURL("/warn-icon.png");
+	protected static final Icon INFO_ICON = iconFromURL("/info-icon.png");
+	protected static final Icon ERROR_ICON = iconFromURL("/error-icon.png");
+
 	protected final JDialog dialog;
 	protected final JScrollPane scrollPane;
 	protected final JPanel tasksPanel;
@@ -112,15 +116,17 @@ public class TaskWindow {
 		final JPanel msgsPanel = new JPanel(new GridBagLayout());
 		final DiscloseTriangle discloseTriangle = new DiscloseTriangle();
 		discloseTriangle.setToolTipText("See details of task");
-		discloseTriangle.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				msgsPanel.setVisible(discloseTriangle.isOpen());
-			}
-		});
 		final JLabel statusLabel = new JLabel("omg wtf", iconFromURL(String.format("/%s-icon.png", icon)), JLabel.LEFT);
 		labelWithFont(statusLabel, "bold 12");
 		final JLabel cancelStatusLabel = new JLabel("Cancelling...", JLabel.RIGHT);
 		labelWithFont(cancelStatusLabel, "italic 12");
+
+		discloseTriangle.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				msgsPanel.setVisible(discloseTriangle.isOpen());
+				statusLabel.setVisible(!discloseTriangle.isOpen());
+			}
+		});
 
 		progressBar.setValue(progress);
 
@@ -150,13 +156,14 @@ public class TaskWindow {
 		c.gridwidth = 1;		c.gridheight = 1;
 		c.weightx = 1.0;		c.weighty = 0.0;
 		c.fill = GridBagConstraints.HORIZONTAL;
-		msgsPanel.add(new JLabel("jsjkslsl"), c);
+		c.insets.set(10, 0, 0, 0);
+		msgsPanel.add(new JLabel("jsjkslsl", INFO_ICON, JLabel.LEFT), c);
 
 		c.gridy++;
-		msgsPanel.add(new JLabel("ajsdsalsj"), c);
+		msgsPanel.add(new JLabel("ajsdsalsj", ERROR_ICON, JLabel.LEFT), c);
 
 		c.gridy++;
-		msgsPanel.add(new JLabel("jasd09219083120"), c);
+		msgsPanel.add(new JLabel("jasd09219083120", WARN_ICON, JLabel.LEFT), c);
 
 		c.gridx = 0;			c.gridy = 1;
 		c.gridwidth = 2;		c.gridheight = 1;

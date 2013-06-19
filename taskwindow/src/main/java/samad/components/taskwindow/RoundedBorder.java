@@ -11,9 +11,10 @@ import java.awt.RenderingHints;
 import javax.swing.border.Border;
 
 public class RoundedBorder implements Border {
-	final Insets insets = new Insets(10, 10, 10, 10);
+	final Insets insets = new Insets(5, 15, 15, 15);
 	final float radius = 10.0f;
-	final Color color = new Color(0xcccccc);
+	final Color color = new Color(0xdddddd);
+	final Color borderColor = new Color(0xcccccc);
 
 	public RoundedBorder() {}
 
@@ -29,8 +30,14 @@ public class RoundedBorder implements Border {
 	public void paintBorder(Component c, Graphics g, int x, int y, int w, int h) {
 		final Graphics2D g2d = (Graphics2D) g;
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
 		rect.setRoundRect(x, y, w, h, radius, radius);
+
 		g2d.setColor(color);
 		g2d.fill(rect);
+
+		rect.setRoundRect(x, y, w - 1, h - 1, radius, radius);
+		g2d.setColor(borderColor);
+		g2d.draw(rect);
 	}
 }
