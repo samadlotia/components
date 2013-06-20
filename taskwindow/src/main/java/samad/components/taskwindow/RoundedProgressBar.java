@@ -5,16 +5,21 @@ import java.awt.Graphics2D;
 import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.RenderingHints;
 
 public class RoundedProgressBar extends JComponent {
-	protected static final float CORNER_RADIUS = 7.2f;
-	protected static final float HEIGHT = 8.0f;
+	protected static final float CORNER_RADIUS = 5.2f;
+	protected static final float HEIGHT = 6.0f;
 	protected static final Color FG_COLOR = new Color(0x499e55);
 	protected static final Color BK_COLOR = new Color(0xd3d3d3);
 
-	public RoundedProgressBar() {}
+	public RoundedProgressBar() {
+		super.setMinimumSize(new Dimension(50, (int) HEIGHT));
+		super.setMaximumSize(new Dimension(10000, (int) HEIGHT));
+		super.setPreferredSize(new Dimension(250, (int) HEIGHT));
+	}
 
 	float value = 0.0f;
 
