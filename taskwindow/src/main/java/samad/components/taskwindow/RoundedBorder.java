@@ -11,7 +11,7 @@ import java.awt.RenderingHints;
 import javax.swing.border.Border;
 
 public class RoundedBorder implements Border {
-	final Insets insets = new Insets(5, 15, 15, 15);
+	final Insets insets = new Insets(15, 15, 15, 15);
 	final float radius = 10.0f;
 	final Color color = new Color(0xdddddd);
 	final Color borderColor = new Color(0xcccccc);
