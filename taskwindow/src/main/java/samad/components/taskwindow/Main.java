@@ -50,7 +50,7 @@ class WhateverTask implements Task {
 	};
 
 	static final float MIN_SLEEP_SEC = 0.5f;
-	static final float MAX_SLEEP_SEC = 3.5f;
+	static final float MAX_SLEEP_SEC = 0.7f;
 	static final int STEPS = 10;
 	static final double PROBABILITY_OF_EXCEPTION = 0.02207;
 

@@ -12,6 +12,8 @@ import javax.swing.ImageIcon;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
+import java.net.URL;
+
 public class TaskManagerImpl implements TaskManager {
 	final TaskWindow window;
 
@@ -29,7 +31,7 @@ public class TaskManagerImpl implements TaskManager {
 
 class TaskRunner implements Runnable {
 	private static Icon iconFromURL(final String url) {
-		return new ImageIcon(TaskWindow.class.getResource(url));
+		return new ImageIcon(TaskRunner.class.getResource(url));
 	}
 
 	static final Map<TaskMonitor.Level,Icon> levelIcons = new HashMap<TaskMonitor.Level,Icon>();
@@ -39,14 +41,23 @@ class TaskRunner implements Runnable {
 		levelIcons.put(TaskMonitor.Level.ERROR, iconFromURL("/error-icon.png"));
 	}
 
+	static final Map<TaskMonitor.Level,URL> levelIconURLs = new HashMap<TaskMonitor.Level,URL>();
+	static {
+		levelIconURLs.put(TaskMonitor.Level.INFO, TaskRunner.class.getResource("/info-icon.png"));
+		levelIconURLs.put(TaskMonitor.Level.WARN, TaskRunner.class.getResource("/warn-icon.png"));
+		levelIconURLs.put(TaskMonitor.Level.ERROR, TaskRunner.class.getResource("/error-icon.png"));
+	}
+
 	static final Icon FINISHED_ICON = iconFromURL("/finished-icon.png");
 	static final Icon CANCELLED_ICON = iconFromURL("/cancelled-icon.png");
 
 	final Task t;
 	final TaskWindow.TaskUI ui;
+	final Map<TaskMonitor.Level,Integer> levelCounts = new HashMap<TaskMonitor.Level,Integer>();
+
 	public TaskRunner(Task t, TaskWindow window) {
 		this.t = t;
-		ui = window.createTask();
+		ui = window.createTaskUI();
 	}
 
 	public void run() {
@@ -64,6 +75,9 @@ class TaskRunner implements Runnable {
 			}
 
 			public void issue(TaskMonitor.Level level, String message) {
+				if (!levelCounts.containsKey(level))
+					levelCounts.put(level, 0);
+				levelCounts.put(level, levelCounts.get(level) + 1);
 				ui.addMessage(levelIcons.get(level), message);
 			}
 		};
@@ -84,12 +98,28 @@ class TaskRunner implements Runnable {
 			if (cancelInvoked[0]) {
 				ui.addMessage(CANCELLED_ICON, "Cancelled.");
 			} else {
-				ui.addMessage(FINISHED_ICON, "Finished.");
+				ui.addMessage(FINISHED_ICON, buildFinishedString());
 			}
 		} catch (Exception e) {
 			monitor.issue(TaskMonitor.Level.ERROR, "Could not be completed: " + e.getMessage());
 			e.printStackTrace();
 		}
 		ui.setTaskAsCompleted();
+	}
+
+	private String buildFinishedString() {
+		final StringBuffer buffer = new StringBuffer();
+		buffer.append("<html>Finished.");
+		if (levelCounts.size() > 0) {
+			for (Map.Entry<TaskMonitor.Level,Integer> levelCount : levelCounts.entrySet()) {
+				buffer.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
+				buffer.append("<img align=\"baseline\" src=\"");
+				buffer.append(levelIconURLs.get(levelCount.getKey()).toString());
+				buffer.append("\">&nbsp;");
+				buffer.append(levelCount.getValue());
+			}
+		}
+		buffer.append("</html>");
+		return buffer.toString();
 	}
 }
