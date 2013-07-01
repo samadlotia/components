@@ -49,10 +49,12 @@ class WhateverTask implements Task {
 		"Smooth runs the water where the brook is deep"
 	};
 
-	static final float MIN_SLEEP_SEC = 0.5f;
-	static final float MAX_SLEEP_SEC = 0.7f;
+	static final float MIN_SLEEP_SEC = 2.0f;
+	static final float MAX_SLEEP_SEC = 3.0f;
 	static final int STEPS = 10;
-	static final double PROBABILITY_OF_EXCEPTION = 0.02207;
+	static final double PROBABILITY_OF_EXCEPTION = 0.3;
+	static final double PROBABILITY_OF_EXCEPTION_PER_STEP = 1.0 - Math.pow(1.0 - PROBABILITY_OF_EXCEPTION, 1.0 / STEPS);
+	static final double PROBABILITY_OF_INDET_SWITCH = 0.5;
 
 	static final TaskMonitor.Level[] LEVELS = {TaskMonitor.Level.INFO, TaskMonitor.Level.WARN};
 
@@ -61,19 +63,26 @@ class WhateverTask implements Task {
 	}
 
 	boolean cancelled = false;
+	boolean indet = false;
 
 	public void run(TaskMonitor monitor) throws Exception {
 		monitor.setTitle(pick(statuses));
+		if (Math.random() <= PROBABILITY_OF_INDET_SWITCH)
+			indet = true;
 
 		for (int i = 0; i < STEPS; i++) {
 			if (cancelled)
 				return;
 			final int sleepMs = (int) (1000 * (Math.random() * (MAX_SLEEP_SEC - MIN_SLEEP_SEC) + MIN_SLEEP_SEC));
 			sleep(sleepMs);
-			if (Math.random() <= PROBABILITY_OF_EXCEPTION) {
+			if (Math.random() <= PROBABILITY_OF_EXCEPTION_PER_STEP) {
 				throw new Exception(pick(statuses));
 			} else {
-				monitor.setProgress(i / ((float) (STEPS - 1)));
+				if (indet) {
+					monitor.setProgress(-1.0f);
+				} else {
+					monitor.setProgress(i / ((float) (STEPS - 1)));
+				}
 				monitor.issue(pick(LEVELS), pick(statuses));
 			}
 		}

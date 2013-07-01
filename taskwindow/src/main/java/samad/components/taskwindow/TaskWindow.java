@@ -64,7 +64,7 @@ public class TaskWindow {
 		cleanButton.addActionListener(new CleanAction());
 
 		tasksPanel = new JPanel();
-		tasksPanel.setLayout(new BoxLayout(tasksPanel, BoxLayout.Y_AXIS));
+		tasksPanel.setLayout(new BoxLayout(tasksPanel, BoxLayout.PAGE_AXIS));
 		scrollPane = new JScrollPane(tasksPanel);
 		dialog.add(scrollPane, c.expandBoth());
 
@@ -149,7 +149,10 @@ class TaskUIImpl implements TaskWindow.TaskUI {
 	}
 
 	public void setProgress(float progress) {
-		progressBar.setValue(progress);
+		if (!(0.0f <= progress && progress <= 1.0f))
+			progressBar.setIndeterminate();
+		else
+			progressBar.setProgress(progress);
 	}
 
 	public void addMessage(Icon icon, String msg) {
