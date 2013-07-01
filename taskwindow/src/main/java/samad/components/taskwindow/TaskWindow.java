@@ -6,6 +6,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JScrollBar;
 import javax.swing.JPanel;
 import javax.swing.JLabel;
+import javax.swing.JTextArea;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JSeparator;
@@ -126,9 +127,18 @@ class TaskUIImpl implements TaskWindow.TaskUI {
 		return label;
 	}
 
+	private static JTextArea textAreaWithFont(String style) {
+		final JTextArea textArea = new JTextArea();
+		if (style == null)
+			style = "plain 12";
+		style = "Helvetica " + style;
+		textArea.setFont(Font.decode(style));
+		return textArea;
+	}
+
 	boolean completed = false;
 	int numStatusMsgs = 0;
-	final JLabel titleLabel;
+	final JTextArea titleLabel;
 	final RoundedProgressBar progressBar;
 	final JLabel cancelLabel;
 	final JPanel msgsPanel;
@@ -200,7 +210,7 @@ class TaskUIImpl implements TaskWindow.TaskUI {
 	}
 
 	public TaskUIImpl() {
-		titleLabel = labelWithFont("bold 16");
+		titleLabel = textAreaWithFont("bold 16");
 		progressBar = new RoundedProgressBar();
 		cancelLabel = new CancelButton();
 
