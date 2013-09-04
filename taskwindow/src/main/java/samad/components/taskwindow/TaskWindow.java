@@ -127,18 +127,9 @@ class TaskUIImpl implements TaskWindow.TaskUI {
 		return label;
 	}
 
-	private static JTextArea textAreaWithFont(String style) {
-		final JTextArea textArea = new JTextArea();
-		if (style == null)
-			style = "plain 12";
-		style = "Helvetica " + style;
-		textArea.setFont(Font.decode(style));
-		return textArea;
-	}
-
 	boolean completed = false;
 	int numStatusMsgs = 0;
-	final JTextArea titleLabel;
+	final JLabel titleLabel;
 	final RoundedProgressBar progressBar;
 	final JLabel cancelLabel;
 	final JPanel msgsPanel;
@@ -210,7 +201,7 @@ class TaskUIImpl implements TaskWindow.TaskUI {
 	}
 
 	public TaskUIImpl() {
-		titleLabel = textAreaWithFont("bold 16");
+		titleLabel = labelWithFont("bold 16");
 		progressBar = new RoundedProgressBar();
 		cancelLabel = new CancelButton();
 

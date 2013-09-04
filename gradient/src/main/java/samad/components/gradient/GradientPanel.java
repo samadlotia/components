@@ -105,9 +105,11 @@ class ColorPanel extends JPanel {
   final JSlider sliderR = createColorSlider();
   final JSlider sliderG = createColorSlider();
   final JSlider sliderB = createColorSlider();
+  final JSlider sliderA = createColorSlider();
   final JTextField fieldR = createColorField();
   final JTextField fieldG = createColorField();
   final JTextField fieldB = createColorField();
+  final JTextField fieldA = createColorField();
 
   public ColorPanel() {
     super(new GridBagLayout());
@@ -116,11 +118,12 @@ class ColorPanel extends JPanel {
     addChannelUpdates(fieldR, sliderR);
     addChannelUpdates(fieldG, sliderG);
     addChannelUpdates(fieldB, sliderB);
+    addChannelUpdates(fieldA, sliderA);
 
     final GridBagConstraints c = new GridBagConstraints();
 
     c.gridx = 0;      c.gridy = 0;
-    c.gridwidth = 1;  c.gridheight = 3;
+    c.gridwidth = 1;  c.gridheight = 4;
     c.weightx = 0.0;  c.weighty = 0.0;
     c.fill = GridBagConstraints.NONE;
     c.anchor = GridBagConstraints.NORTHWEST;
@@ -159,6 +162,16 @@ class ColorPanel extends JPanel {
 
     c.gridx = 3;      c.gridy = 2;
     super.add(fieldB, c);
+    
+    c.gridx = 1;      c.gridy = 3;
+    c.insets = new Insets(10, 0, 10, 10);
+    super.add(new JLabel("A:"), c);
+
+    c.gridx = 2;      c.gridy = 3;
+    super.add(sliderA, c);
+
+    c.gridx = 3;      c.gridy = 3;
+    super.add(fieldA, c);
 
   }
 
@@ -206,7 +219,9 @@ class ColorPanel extends JPanel {
     return new Color(
       sliderR.getValue(),
       sliderG.getValue(),
-      sliderB.getValue());
+      sliderB.getValue(),
+      sliderA.getValue()
+      );
   }
 
   private void updateColor() {
@@ -232,33 +247,36 @@ class ColorPanel extends JPanel {
   public void setColor(final Color color) {
     well.setColor(color);
     if (color == null) {
-      for (final JTextField field : Arrays.asList(fieldR, fieldG, fieldB)) {
+      for (final JTextField field : Arrays.asList(fieldR, fieldG, fieldB, fieldA)) {
         field.setEnabled(false);
         field.setText("");
       }
-      for (final JSlider slider : Arrays.asList(sliderR, sliderG, sliderB)) {
+      for (final JSlider slider : Arrays.asList(sliderR, sliderG, sliderB, sliderA)) {
         slider.setEnabled(false);
         slider.setValue(0);
       }
     } else {
-      for (final JTextField field : Arrays.asList(fieldR, fieldG, fieldB)) {
+      for (final JTextField field : Arrays.asList(fieldR, fieldG, fieldB, fieldA)) {
         field.setEnabled(true);
       }
-      for (final JSlider slider : Arrays.asList(sliderR, sliderG, sliderB)) {
+      for (final JSlider slider : Arrays.asList(sliderR, sliderG, sliderB, sliderA)) {
         slider.setEnabled(true);
       }
 
       final int r = color.getRed();
       final int g = color.getGreen();
       final int b = color.getBlue();
+      final int a = color.getAlpha();
 
       fieldR.setText(Integer.toString(r));
       fieldG.setText(Integer.toString(g));
       fieldB.setText(Integer.toString(b));
+      fieldA.setText(Integer.toString(a));
 
       sliderR.setValue(r);
       sliderG.setValue(g);
       sliderB.setValue(b);
+      sliderA.setValue(a);
     }
   }
 }
