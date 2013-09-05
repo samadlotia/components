@@ -4,9 +4,11 @@ import java.util.Arrays;
 import java.util.List;
 
 import java.awt.Color;
+import java.awt.Paint;
 import java.awt.Rectangle;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
@@ -75,8 +77,6 @@ public class GradientPanel extends JPanel {
         }
       }
     });
-
-    positionPanel.setAbsoluteRange(-30.0, 50.0);
 
     final GridBagConstraints c = new GridBagConstraints();
 
@@ -154,7 +154,6 @@ class ColorPanel extends JPanel {
     super.add(fieldG, c);
     
     c.gridx = 1;      c.gridy = 2;
-    c.insets = new Insets(10, 0, 10, 10);
     super.add(new JLabel("B:"), c);
 
     c.gridx = 2;      c.gridy = 2;
@@ -281,24 +280,7 @@ class ColorPanel extends JPanel {
   }
 }
 
-class ColorPresets extends JPanel {
-  protected static final List<Color> COLORS = Arrays.asList(
-    Color.red,
-    Color.orange,
-    Color.yellow,
-    Color.green,
-    Color.blue,
-    Color.magenta,
-    Color.black,
-    Color.darkGray,
-    Color.lightGray,
-    Color.white
-    );
-}
-
 class ColorWell extends JComponent {
-  protected static final Color DISABLED_COLOR = new Color(0xD6D6D6);
-
   Color color = null;
 
   public void setColor(final Color color) {
@@ -307,56 +289,44 @@ class ColorWell extends JComponent {
   }
 
   public void paintComponent(Graphics g) {
+    final Graphics2D g2d = (Graphics2D) g;
     final Insets insets = super.getInsets();
-    g.setColor(color == null ? DISABLED_COLOR : color);
-    g.fillRect(insets.left, insets.top, super.getWidth() - insets.left - insets.right, super.getHeight() - insets.top - insets.bottom);
+    final int x = insets.left;
+    final int y = insets.top;
+    final int w = super.getWidth() - insets.left - insets.right;
+    final int h = super.getHeight() - insets.top - insets.bottom;
+    g2d.setPaint(GradientEditorUI.checkeredPaint());
+    g2d.fillRect(x, y, w, h);
+    if (color != null) {
+      g2d.setColor(color);
+      g2d.fillRect(x, y, w, h);
+    }
   }
 }
 
 class PositionPanel extends JPanel {
   public static final String POSITION_CHANGED = "position changed";
 
-  double absRangeMin = 0.0;
-  double absRangeMax = 1.0;
-
-  final SpinnerNumberModel absSpinnerModel = new SpinnerNumberModel(0.0, 0.0, 1.0, 0.1);
-  final JSpinner absSpinner = createSpinner(absSpinnerModel);
   final JSpinner relSpinner = createSpinner(new SpinnerNumberModel(0.0, 0.0, 1.0, 0.1));
 
   public PositionPanel() {
     super(new GridBagLayout());
     super.setBorder(BorderFactory.createTitledBorder("Position"));
 
-    absSpinner.addChangeListener(new ChangeListener() {
-      public void stateChanged(final ChangeEvent e) {
-        final double absValue = ((Number) absSpinner.getValue()).doubleValue();
-        relSpinner.setValue(absToRel(absValue));
-        firePropertyChange(POSITION_CHANGED, null, null);
-      }
-    });
-
     relSpinner.addChangeListener(new ChangeListener() {
       public void stateChanged(final ChangeEvent e) {
         final double relValue = ((Number) relSpinner.getValue()).doubleValue();
-        absSpinner.setValue(relToAbs(relValue));
         firePropertyChange(POSITION_CHANGED, null, null);
       }
     });
 
     final GridBagConstraints c = new GridBagConstraints();
 
-    c.gridx = 0;      c.gridy = 0;
+    c.gridx = 0;      c.gridy = 1;
     c.gridwidth = 1;  c.gridheight = 1;
     c.weightx = 0.0;  c.weighty = 0.0;
     c.anchor = GridBagConstraints.NORTHWEST;
     c.insets = new Insets(10, 10, 10, 10);
-    super.add(new JLabel("Absolute:"), c);
-
-    c.gridx = 1;      c.gridy = 0;
-    super.add(absSpinner, c);
-
-    c.gridx = 0;      c.gridy = 1;
-    c.insets = new Insets(0, 10, 10, 10);
     super.add(new JLabel("Relative:"), c);
 
     c.gridx = 1;      c.gridy = 1;
@@ -375,22 +345,11 @@ class PositionPanel extends JPanel {
     return spinner;
   }
 
-  public void setAbsoluteRange(final double min, final double max) {
-    this.absRangeMin = min;
-    this.absRangeMax = max;
-    absSpinnerModel.setMinimum(min);
-    absSpinnerModel.setMaximum(max);
-    absSpinnerModel.setStepSize(Math.abs(0.1 * (max - min)));
-  }
-
   public void setPosition(final Float position) {
     if (position == null) {
-      absSpinner.setEnabled(false);
       relSpinner.setEnabled(false);
-      absSpinner.setValue(new Double(0.0));
       relSpinner.setValue(new Double(0.0));
     } else {
-      absSpinner.setEnabled(true);
       relSpinner.setEnabled(true);
       relSpinner.setValue(position);
     }
@@ -398,13 +357,5 @@ class PositionPanel extends JPanel {
 
   public float getPosition() {
     return (((Number) relSpinner.getValue()).floatValue());
-  }
-
-  private double absToRel(final double abs) {
-    return (abs - absRangeMin) / (absRangeMax - absRangeMin);
-  }
-
-  private double relToAbs(final double rel) {
-    return absRangeMin + rel * (absRangeMax - absRangeMin);
   }
 }

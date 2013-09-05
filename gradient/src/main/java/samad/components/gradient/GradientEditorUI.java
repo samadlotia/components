@@ -15,13 +15,15 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Path2D;
 import java.awt.Insets;
+import java.awt.TexturePaint;
+import java.awt.image.BufferedImage;
 
 public class GradientEditorUI extends ComponentUI {
   final GradientEditor editor;
   final KnobUI knobUI = new KnobUI();
 
   final Rectangle2D.Float gradientRegion = new Rectangle2D.Float();
-  // keep these as class members so that they won't have to be reallocated
+  // keep this as a class member so that it won't have to be reallocated
   // every time paint() is called
   final Rectangle2D.Float singleGradientRect = new Rectangle2D.Float();
 
@@ -39,6 +41,10 @@ public class GradientEditorUI extends ComponentUI {
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
     updateGradientRegion();
+
+    // paint background pattern
+    g2d.setPaint(checkeredPaint());
+    g2d.fill(gradientRegion);
 
     // paint up to the first stop
     final Gradient.Stop firstStop = gradient.stopAtIndex(0);
@@ -143,7 +149,7 @@ public class GradientEditorUI extends ComponentUI {
 
     protected static final Color KNOB_INNER_COLOR = new Color(0xEDEDED);
     protected static final Color KNOB_BORDER_COLOR = new Color(0xA0A0A0);
-    protected static final Color KNOB_SELECTED_COLOR = new Color(0x47CAACC);
+    protected static final Color KNOB_SELECTED_COLOR = new Color(0x606060);
 
     protected static final Path2D.Float KNOB_PATH = knobPath();
     protected static final Path2D.Float KNOB_SELECTED_PATH = knobSelectedPath();
@@ -233,9 +239,29 @@ public class GradientEditorUI extends ComponentUI {
       g.setPaint(KNOB_BORDER_COLOR);
       g.draw(knobPath.path());
 
-      g.setColor(knobColor);
+      g.setColor(new Color(knobColor.getRGB())); // ignore alpha channel
       g.fill(colorFillPath.offset(x, y));
     }
+  }
+
+  private static TexturePaint BKGND_PAINT = null;
+
+  /**
+   * Return checkered pattern used to depict transparency like in Photoshop.
+   */
+  public static TexturePaint checkeredPaint() {
+    if (BKGND_PAINT == null) {
+      final int d = 20;
+      final BufferedImage img = new BufferedImage(d, d, BufferedImage.TYPE_INT_RGB);
+      final Graphics2D g2d = img.createGraphics();
+      g2d.setColor(new Color(0xf2f2f2));
+      g2d.fillRect(0, 0, d, d);
+      g2d.setColor(new Color(0xcccccc));
+      g2d.fillRect(0, 0, d / 2, d / 2);
+      g2d.fillRect(d / 2, d / 2, d, d);
+      BKGND_PAINT = new TexturePaint(img, new Rectangle2D.Float(0, 0, d, d));
+    }
+    return BKGND_PAINT;
   }
 }
 
