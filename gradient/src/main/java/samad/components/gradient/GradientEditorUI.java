@@ -77,6 +77,10 @@ public class GradientEditorUI extends ComponentUI {
                                gradientRegion.width - xN + gradientRegion.x, gradientRegion.height);
     g2d.fill(singleGradientRect);
 
+    // paint border around gradient
+    g2d.setPaint(KnobUI.KNOB_BORDER_COLOR);
+    g2d.draw(gradientRegion);
+
     // paint each knob
     final Gradient.Stop selectedStop = editor.getSelectedStop();
     for (final Gradient.Stop stop : gradient.getStops()) {
